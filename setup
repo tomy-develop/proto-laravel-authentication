@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# .env フォイル作成
+cp -n .env.example .env
+
+# composer コマンド実行
+if [ ! -f vendor/bin/sail ]; then
+    docker run \
+        --rm \
+        -u $(id -u):$(id -g) \
+        -v $(pwd):/var/www/html \
+        -w /var/www/html \
+        laravelsail/php80-composer:latest \
+        composer install --ignore-platform-reqs
+fi
+
+# docker イメージ作成
+./vendor/bin/sail build
+
+# docker コンテナ起動
+./vendor/bin/sail up -d
+
+# APP_KEY 生成
+./vendor/bin/sail artisan key:generate
